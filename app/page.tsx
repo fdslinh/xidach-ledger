@@ -7,14 +7,22 @@ import { getSessionSummary } from "@/lib/stats";
 
 export const dynamic = "force-dynamic";
 
+type ProfitEntry = {
+  profitLoss: number;
+};
+
 export default async function HomePage() {
+  const entriesPromise: Promise<ProfitEntry[]> = prisma.gameSessionPlayer.findMany({
+    select: { profitLoss: true },
+  });
+
   const [sessions, entries, playersCount] = await Promise.all([
     prisma.gameSession.findMany({
       orderBy: { playedAt: "desc" },
       take: 4,
       include: { players: { include: { player: true } } },
     }),
-    prisma.gameSessionPlayer.findMany(),
+    entriesPromise,
     prisma.player.count({ where: { isActive: true } }),
   ]);
 
